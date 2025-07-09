@@ -8,11 +8,11 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 
 # Install dependencies first for better cache utilisation
-COPY backend/requirements.txt ./
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the backend source code
-COPY backend/ ./
+COPY . ./
 
 # Make the start script executable
 RUN chmod +x start.sh
