@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, JSON
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from database import Base
@@ -26,6 +26,11 @@ class ResearchReport(Base):
     
     # Analysis
     analysis = Column(Text)
+    
+    # Competitive Analysis - JSON fields to store competitor data
+    # These columns may not exist in older database schemas
+    global_competitors = Column(JSON, nullable=True)  # Store array of global competitor data
+    national_competitors = Column(JSON, nullable=True)  # Store array of national competitor data
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

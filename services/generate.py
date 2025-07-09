@@ -59,7 +59,7 @@ def setup_initial_questions(topic: str) -> list[str]:
         )
         
         response = client.models.generate_content(
-            model="gemini-2.5-pro",
+            model="gemini-2.5-pro-preview-06-05",
             contents=prompt.initialPrompt(topic),
             config=config,
         )
@@ -82,7 +82,7 @@ def setup_initial_questions(topic: str) -> list[str]:
                 )
                 
                 response = client.models.generate_content(
-                    model="gemini-2.5-pro",
+                    model="gemini-2.5-pro-preview-06-05",
                     contents=prompt.initialPrompt(topic),
                     config=config,
                 )
@@ -97,7 +97,7 @@ def setup_initial_questions(topic: str) -> list[str]:
                 print("Using model without grounding...")
                 # Final fallback: no grounding
                 response = client.models.generate_content(
-                    model="gemini-2.5-pro",
+                    model="gemini-2.5-pro-preview-06-05",
                     contents=prompt.initialPrompt(topic),
                 )
                 
@@ -170,7 +170,7 @@ async def analyze_branch_ai_async(branch: str) -> tuple[str, str]:
         
         response = await asyncio.to_thread(
             client.models.generate_content,
-            model="gemini-2.5-flash",
+            model="gemini-2.5-flash-preview-05-20",
             contents=prompt.analyzePrompt(branch),
             config=config,
         )
@@ -182,7 +182,7 @@ async def analyze_branch_ai_async(branch: str) -> tuple[str, str]:
             print(f"  --> Search grounding not supported, using model without grounding for branch: '{branch}'")
             response = await asyncio.to_thread(
                 client.models.generate_content,
-                model="gemini-2.5-flash",
+                model="gemini-2.5-flash-preview-05-20",
                 contents=prompt.analyzePrompt(branch),
             )
             return branch, response.text
@@ -198,7 +198,7 @@ async def analyze_branch_ai_async(branch: str) -> tuple[str, str]:
                 
                 response = await asyncio.to_thread(
                     client.models.generate_content,
-                    model="gemini-2.5-flash",
+                    model="gemini-2.5-flash-preview-05-20",
                     contents=prompt.analyzePrompt(branch),
                     config=config,
                 )
@@ -208,7 +208,7 @@ async def analyze_branch_ai_async(branch: str) -> tuple[str, str]:
                 print(f"  --> Both grounding methods failed, using model without grounding for branch: '{branch}'")
                 response = await asyncio.to_thread(
                     client.models.generate_content,
-                    model="gemini-2.5-flash",
+                    model="gemini-2.5-flash-preview-05-20",
                     contents=prompt.analyzePrompt(branch),
                 )
                 return branch, response.text
@@ -221,7 +221,7 @@ def structure_findings(topic: str, findings: list[str]) -> str:
         full_report: str
 
     response = client.models.generate_content(
-        model="gemini-2.5-pro",
+        model="gemini-2.5-pro-preview-06-05",
         contents=prompt.findingsPrompt(topic, findings),
         config={
             "response_mime_type": "application/json",

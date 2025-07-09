@@ -61,7 +61,8 @@ class CompetitorData(BaseModel):
     peRatio: str
 
 class CompetitiveAnalysis(BaseModel):
-    competitors: List[CompetitorData]
+    global_competitors: List[CompetitorData]
+    national_competitors: List[CompetitorData]
 
 class ReportData(BaseModel):
     overview: CompanyOverview

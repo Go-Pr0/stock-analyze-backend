@@ -20,17 +20,11 @@ async def create_research_report(
     try:
         print(f"📊 Generating research report for: {request.prompt} ({request.ticker})")
         
-        # MOCK IMPLEMENTATION: Use the mock service to generate a report with real data and mock AI
-        report = await ResearchService.mock_generate_research_report(
+        # Generate research report using real AI analysis
+        report = await ResearchService.generate_research_report(
             prompt=request.prompt,
             ticker=request.ticker
         )
-        
-        # ORIGINAL IMPLEMENTATION (commented out for testing)
-        # report = await ResearchService.generate_research_report(
-        #     prompt=request.prompt,
-        #     ticker=request.ticker
-        # )
         
         # Save to database
         db_report = ResearchDBService.create_research_report(

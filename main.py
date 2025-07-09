@@ -13,6 +13,15 @@ try:
     if engine:
         Base.metadata.create_all(bind=engine)
         print("✅ Database tables created successfully")
+        
+        # Run startup migration for competitive analysis
+        try:
+            from startup_migration import check_and_migrate
+            check_and_migrate()
+        except Exception as migration_error:
+            print(f"⚠️ Startup migration failed: {migration_error}")
+            print("🔄 Service will continue, but competitive analysis may not work properly")
+            
 except Exception as e:
     print(f"⚠️ Database initialization failed: {e}")
     print("🔄 Service will continue without database (some features may be limited)")

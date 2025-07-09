@@ -127,24 +127,28 @@ class ResearchService:
 
     @staticmethod
     async def _generate_competitive_analysis(ticker: str) -> Optional[CompetitiveAnalysis]:
-        """Generate competitive analysis by finding competitors and fetching their data"""
+        """Generate competitive analysis by finding both global and national competitors and fetching their data"""
         try:
             print(f"🏁 Generating competitive analysis for: {ticker}")
             
-            # Step 1: Get competitor tickers
-            competitor_tickers = await CompetitorAnalysisService.get_competitor_tickers(ticker.upper())
-            if not competitor_tickers:
+            # Step 1: Get both global and national competitor tickers
+            competitors_dict = await CompetitorAnalysisService.get_global_and_national_competitors(ticker.upper())
+            global_tickers = competitors_dict.get("global_competitors", [])
+            national_tickers = competitors_dict.get("national_competitors", [])
+            
+            if not global_tickers and not national_tickers:
                 print(f"⚠ No competitors found for {ticker}")
                 return None
             
-            print(f"✓ Found {len(competitor_tickers)} competitors: {competitor_tickers}")
+            print(f"✓ Found {len(global_tickers)} global competitors: {global_tickers}")
+            print(f"✓ Found {len(national_tickers)} national competitors: {national_tickers}")
             
-            # Step 2: Fetch stock data for each competitor
-            competitor_data = []
-            for comp_ticker in competitor_tickers:
+            # Step 2: Fetch stock data for global competitors
+            global_competitor_data = []
+            for comp_ticker in global_tickers:
                 try:
                     stock_data = fetch_stock_summary(comp_ticker)
-                    competitor_data.append(CompetitorData(
+                    global_competitor_data.append(CompetitorData(
                         ticker=comp_ticker,
                         name=stock_data['data']['overview']['name'],
                         sector=stock_data['data']['overview']['sector'],
@@ -156,14 +160,39 @@ class ResearchService:
                         eps=stock_data['data']['financials']['eps'],
                         peRatio=stock_data['data']['financials']['peRatio']
                     ))
-                    print(f"✓ Fetched data for competitor: {comp_ticker}")
+                    print(f"✓ Fetched data for global competitor: {comp_ticker}")
                 except Exception as e:
-                    print(f"⚠ Could not fetch data for competitor {comp_ticker}: {e}")
+                    print(f"⚠ Could not fetch data for global competitor {comp_ticker}: {e}")
                     continue
             
-            if competitor_data:
-                print(f"✓ Successfully fetched data for {len(competitor_data)} competitors")
-                return CompetitiveAnalysis(competitors=competitor_data)
+            # Step 3: Fetch stock data for national competitors
+            national_competitor_data = []
+            for comp_ticker in national_tickers:
+                try:
+                    stock_data = fetch_stock_summary(comp_ticker)
+                    national_competitor_data.append(CompetitorData(
+                        ticker=comp_ticker,
+                        name=stock_data['data']['overview']['name'],
+                        sector=stock_data['data']['overview']['sector'],
+                        marketCap=stock_data['data']['overview']['marketCap'],
+                        price=stock_data['data']['overview']['price'],
+                        change=stock_data['data']['overview']['change'],
+                        revenue=stock_data['data']['financials']['revenue'],
+                        netIncome=stock_data['data']['financials']['netIncome'],
+                        eps=stock_data['data']['financials']['eps'],
+                        peRatio=stock_data['data']['financials']['peRatio']
+                    ))
+                    print(f"✓ Fetched data for national competitor: {comp_ticker}")
+                except Exception as e:
+                    print(f"⚠ Could not fetch data for national competitor {comp_ticker}: {e}")
+                    continue
+            
+            if global_competitor_data or national_competitor_data:
+                print(f"✓ Successfully fetched data for {len(global_competitor_data)} global and {len(national_competitor_data)} national competitors")
+                return CompetitiveAnalysis(
+                    global_competitors=global_competitor_data,
+                    national_competitors=national_competitor_data
+                )
             else:
                 print(f"⚠ No competitor data could be fetched")
                 return None

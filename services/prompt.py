@@ -4,7 +4,7 @@ def initialPrompt(topic):
     return f"""
 You are a strategic research planner with access to current web search capabilities. Your task is to break down a complex topic into distinct, manageable research branches while leveraging the most current information available.
 
-Company/topic to analyze: the {topic} budwiser company & future outlook for it
+Company/topic to analyze: the {topic} company & future outlook for it
 
 FIRST: For research into a company topics always at least look at these topics
 - Recent developments and news
@@ -82,7 +82,8 @@ def findingsPrompt(topic: str, findings_list: list[str]):
     Identify key themes and draw connections between different findings.
     Present the information in a clear, professional narrative.
     Maintain a completely neutral and objective tone.
-    Format the report for easy reading using necessary formatting: ## for headings, ** for bold, * for bullets, and \n for line breaks. Do not use <br></br>
+    Format the report for easy reading using necessary formatting: ## for headings, ** for bold, * for bullets, and \n for line breaks. 
+    Do not use <br></br>
     The final output must be in this exact JSON format:
     {{
     "full_report": "The full, synthesized report text goes here."
@@ -95,5 +96,38 @@ def findingsPrompt(topic: str, findings_list: list[str]):
     Proceed with generating the comprehensive report based exclusively on the provided findings. Make sure to incoporate a user friendly format like specified.
     Remember the topic you need to answer/elaborate on: {topic}
     Present a chronological report, starting in the past, and working your way to the present, noting the key occurences in a neutral/objective tone.
+    Focus on formatting it in good paragraphs & a good format.
     """
     return full_prompt
+
+def get_global_competitor_prompt(ticker: str):
+    return f"""
+Find the top 5 direct competitors of the company with ticker symbol {ticker}.
+
+You must return ONLY the ticker symbols of the competing companies, nothing else. 
+Focus on companies that are in the same industry/sector and compete directly.
+Only include publicly traded companies with valid stock ticker symbols.
+
+Return the results in this exact JSON format:
+```json
+{{
+ "global_competitors": [
+   "TICKER1",
+   "TICKER2", 
+   "TICKER3"
+ ],
+ "national_competitors": [
+   "TICKER1",
+   "TICKER2", 
+   "TICKER3"
+ ]
+}}
+```
+They must be in the same industry/sector.
+
+Base your results off of what you find on the web. Get the official ticker supported by yahoo finance and only use that.
+You must google the exact stocks as well with yahoo finance to get this.
+The tickers national and global tickers are allowed to match if absolutely necessary.
+
+Do not include any explanation, analysis, or additional text. Just the JSON with ticker symbols.
+"""

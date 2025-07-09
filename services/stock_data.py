@@ -28,7 +28,7 @@ def fetch_stock_summary(symbol: str):
     # Build output structure
     result = {
         "id": str(int(now.timestamp() * 1000)),  # ✅ correct timestamp in ms
-        "companyName": f"Analyze the growth potential for {info.get('shortName', symbol)}",
+        "companyName": f"{info.get('shortName', symbol)}",
         "timestamp": now.isoformat().replace("+00:00", "Z"),  # ✅ ISO 8601 + Z
         "data": {
             "overview": {
