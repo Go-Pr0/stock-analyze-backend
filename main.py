@@ -6,9 +6,14 @@ from api.research import router as research_router
 from api.auth import router as auth_router
 from database import engine, Base
 
-# Create database tables
-if engine:
-    Base.metadata.create_all(bind=engine)
+# Create database tables (with error handling)
+try:
+    if engine:
+        Base.metadata.create_all(bind=engine)
+        print("✅ Database tables created successfully")
+except Exception as e:
+    print(f"⚠️ Database initialization failed: {e}")
+    print("🔄 Service will continue without database (some features may be limited)")
 
 app = FastAPI(title="Stock Research API", version="2.0.0")
 
@@ -40,6 +45,12 @@ async def root():
 
 @app.get("/health")
 async def health_check():
+    """Simple health check that doesn't depend on external services"""
+    return {"status": "healthy", "service": "backend"}
+
+@app.get("/health/detailed")
+async def detailed_health_check():
+    """Detailed health check that includes database status"""
     return {"status": "healthy", "database": "connected" if engine else "not configured"}
 
 if __name__ == "__main__":

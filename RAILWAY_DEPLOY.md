@@ -108,11 +108,20 @@ After deployment, your backend will provide:
 
 ## Testing After Deployment
 
-1. **Health Check**: `https://your-backend.railway.app/health`
-2. **API Docs**: `https://your-backend.railway.app/docs`
-3. **API Info**: `https://your-backend.railway.app/`
+1. **Simple Health Check**: `https://your-backend.railway.app/health`
+2. **Detailed Health Check**: `https://your-backend.railway.app/health/detailed`
+3. **API Docs**: `https://your-backend.railway.app/docs`
+4. **API Info**: `https://your-backend.railway.app/`
 
-Expected health check response:
+Expected simple health check response:
+```json
+{
+  "status": "healthy",
+  "service": "backend"
+}
+```
+
+Expected detailed health check response:
 ```json
 {
   "status": "healthy",
