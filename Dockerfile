@@ -17,5 +17,6 @@ COPY . ./
 # Expose FastAPI default port (Railway will override with $PORT)
 EXPOSE 8000
 
-# Provide sensible default (Railway will override with startCommand)
+# Railway will use the startCommand from railway.json
+# This is a fallback for local development
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"] 
