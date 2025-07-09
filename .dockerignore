@@ -4,6 +4,7 @@ __pycache__/
 
 # Environment & dev folders
 venv/
+.venv/
 .env
 
 # Editors / IDEs
