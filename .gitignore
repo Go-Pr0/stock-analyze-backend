@@ -1,0 +1,60 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+.eggs/
+*.egg-info/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+venv/
+.env
+.env.*
+.venv/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+.env
+coverage.xml
+*.cover
+*.py,cover
+*.pytest_cache/
+
+# Type checker / linting
+.mypy_cache/
+.pyre/
+
+# Logs
+*.log
+
+# IDEs & editors
+.idea/
+.vscode/
+
+# macOS
+.DS_Store
+
+# Others
+*.swp 
