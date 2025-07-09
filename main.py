@@ -3,6 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from api.research import router as research_router
+from api.auth import router as auth_router
+from database import engine, Base
+
+# Create database tables
+if engine:
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Stock Research API", version="2.0.0")
 
@@ -18,11 +24,16 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth_router)
 app.include_router(research_router)
 
 @app.get("/")
 async def root():
-    return {"message": "Stock Research API v2.0 is running"}
+    return {"message": "Stock Research API v2.0 with Authentication is running"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "database": "connected" if engine else "not configured"}
 
 if __name__ == "__main__":
     import uvicorn

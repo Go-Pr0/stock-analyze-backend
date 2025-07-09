@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional
 
-from models.schemas import SearchRequest, ResearchReport
+from models.schemas import SearchRequest, ResearchReport, User
 from services.research_service import ResearchService
+from auth import get_current_active_user
 
 router = APIRouter(prefix="/api", tags=["research"])
 
@@ -10,7 +11,10 @@ router = APIRouter(prefix="/api", tags=["research"])
 research_reports: List[ResearchReport] = []
 
 @router.post("/research", response_model=ResearchReport)
-async def create_research_report(request: SearchRequest):
+async def create_research_report(
+    request: SearchRequest, 
+    current_user: User = Depends(get_current_active_user)
+):
     """Generate a comprehensive research report for a company"""
     try:
         print(f"📊 Generating research report for: {request.prompt} ({request.ticker})")
@@ -32,12 +36,18 @@ async def create_research_report(request: SearchRequest):
         raise HTTPException(status_code=500, detail=f"Error generating report: {str(e)}")
 
 @router.get("/research", response_model=List[ResearchReport])
-async def get_research_history(limit: Optional[int] = 10):
+async def get_research_history(
+    limit: Optional[int] = 10,
+    current_user: User = Depends(get_current_active_user)
+):
     """Get research history"""
     return research_reports[-limit:] if limit else research_reports
 
 @router.get("/research/{report_id}", response_model=ResearchReport)
-async def get_research_report(report_id: str):
+async def get_research_report(
+    report_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
     """Get a specific research report by ID"""
     for report in research_reports:
         if report.id == report_id:
@@ -45,7 +55,10 @@ async def get_research_report(report_id: str):
     raise HTTPException(status_code=404, detail="Report not found")
 
 @router.delete("/research/{report_id}")
-async def delete_research_report(report_id: str):
+async def delete_research_report(
+    report_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
     """Delete a research report"""
     global research_reports
     research_reports = [r for r in research_reports if r.id != report_id]
