@@ -14,6 +14,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the backend source code
 COPY . ./
 
+# Make the start script executable
+RUN chmod +x start.sh
+
 # Expose FastAPI default port (Railway will override with $PORT)
 EXPOSE 8000
 
