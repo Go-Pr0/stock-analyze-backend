@@ -5,6 +5,8 @@ import os
 from api.research import router as research_router
 from api.auth import router as auth_router
 from database import engine, Base
+from models.user_models import User
+from models.research_models import ResearchReport
 
 # Create database tables (with error handling)
 try:
