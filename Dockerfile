@@ -14,8 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the backend source code
 COPY . ./
 
-# Expose FastAPI default port
+# Expose FastAPI default port (Railway will override with $PORT)
 EXPOSE 8000
 
-# Provide sensible default (can be overridden at runtime)
+# Provide sensible default (Railway will override with startCommand)
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"] 

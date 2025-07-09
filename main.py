@@ -13,7 +13,14 @@ if engine:
 app = FastAPI(title="Stock Research API", version="2.0.0")
 
 # Enable CORS for frontend communication
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
+# Default includes local development and Railway production URLs
+default_origins = "http://localhost:5173,http://localhost:3000,http://localhost:80"
+allowed_origins = os.getenv("ALLOWED_ORIGINS", default_origins).split(",")
+
+# Add Railway frontend URL if provided
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    allowed_origins.append(frontend_url)
 
 app.add_middleware(
     CORSMiddleware,
