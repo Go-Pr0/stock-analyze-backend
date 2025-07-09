@@ -100,6 +100,69 @@ class ResearchService:
             return f"AI analysis for {company_name} is temporarily unavailable due to technical issues."
     
     @staticmethod
+    async def generate_research_report(prompt: str, ticker: str) -> ResearchReport:
+        """
+        MOCK AI: Generate a research report with real stock data and MOCK AI analysis. ONLY AI IS MOCKED
+        
+        Args:
+            prompt: Company name or research prompt
+            ticker: Stock ticker symbol
+            
+        Returns:
+            ResearchReport: Complete research report in the format expected by frontend
+        """
+        print("--- MOCK AI: Generating report with real stock data ---")
+        
+        # Step 1: Get real stock data if ticker is provided
+        stock_data = None
+        if ticker and ticker.strip():
+            try:
+                stock_data = fetch_stock_summary(ticker.upper())
+                print(f"✓ Fetched real stock data for {ticker}")
+            except Exception as e:
+                print(f"⚠ Could not fetch stock data for {ticker}: {e}")
+        
+        # Simulate a small delay for perceived AI generation
+        await asyncio.sleep(1)
+
+        # Step 2: Use a mock analysis text
+        company_name_for_analysis = prompt or (stock_data['data']['overview']['name'] if stock_data else ticker)
+        mock_analysis_text = f"""
+## Executive Summary (Mock Analysis)
+
+This is a mock AI analysis for **{company_name_for_analysis}**. The financial data below is real, but this text is a placeholder for development and testing purposes.
+
+### Key Findings (Mock):
+* **Market Position:** The company is presented as a leader in its sector for testing.
+* **Financial Health:** Real-time financial data is included below.
+* **Future Outlook:** This section is a mock-up and does not represent a real forecast.
+
+This report for **{ticker}** was generated using real-time financial data combined with a simulated AI analysis to facilitate testing.
+        """
+
+        # Step 3: Construct the final report
+        if stock_data:
+            # Use real stock data as base and add mock AI analysis
+            report = ResearchReport(
+                id=stock_data['id'],
+                companyName=stock_data['companyName'],
+                timestamp=stock_data['timestamp'],
+                data=ReportData(
+                    overview=CompanyOverview(**stock_data['data']['overview']),
+                    financials=Financials(**stock_data['data']['financials']),
+                    analysis=mock_analysis_text
+                )
+            )
+        else:
+            # Fallback to a fully mock report if stock data fails
+            print("--- MOCK AI: Could not fetch real data, falling back to fully mock report ---")
+            report = ResearchService._create_mock_report_with_analysis(prompt, mock_analysis_text)
+            
+        print("--- MOCK AI: Report generated successfully ---")
+        
+        return report
+
+    @staticmethod
     def _create_mock_report_with_analysis(company_name: str, analysis: str) -> ResearchReport:
         """Create a mock report when real stock data is unavailable"""
         now = datetime.now(timezone.utc)

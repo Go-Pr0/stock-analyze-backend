@@ -41,19 +41,15 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(research_router)
 
-@app.get("/")
-async def root():
-    return {"message": "Stock Research API v2.0 with Authentication is running"}
-
-@app.get("/health")
+@app.get("/api/health")
 async def health_check():
     """Simple health check that doesn't depend on external services"""
-    return {"status": "healthy", "service": "backend"}
+    return {"status": "ok", "service": "backend"}
 
-@app.get("/health/detailed")
+@app.get("/api/health/detailed")
 async def detailed_health_check():
     """Detailed health check that includes database status"""
-    return {"status": "healthy", "database": "connected" if engine else "not configured"}
+    return {"status": "ok", "database": "connected" if engine else "not configured"}
 
 if __name__ == "__main__":
     import uvicorn
