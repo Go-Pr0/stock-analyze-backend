@@ -5,7 +5,8 @@ from typing import Optional
 
 from .stock_data import fetch_stock_summary
 from .generate import setup_initial_questions, analyze_all_branches_async, structure_findings
-from models.schemas import ResearchReport, ReportData, CompanyOverview, Financials
+from .competitor_service import CompetitorAnalysisService
+from models.schemas import ResearchReport, ReportData, CompanyOverview, Financials, CompetitorData, CompetitiveAnalysis
 
 
 class ResearchService:
@@ -33,9 +34,33 @@ class ResearchService:
                 except Exception as e:
                     print(f"⚠ Could not fetch stock data for {ticker}: {e}")
             
-            # Step 2: Generate AI analysis
+            # Step 2: Run AI analysis and competitive analysis in parallel
             company_name = prompt if prompt else (stock_data['data']['overview']['name'] if stock_data else ticker)
-            analysis_text = await ResearchService._generate_ai_analysis(company_name)
+            
+            # Start both tasks concurrently
+            analysis_task = ResearchService._generate_ai_analysis(company_name)
+            competitive_task = ResearchService._generate_competitive_analysis(ticker) if ticker and ticker.strip() else None
+            
+            # Wait for both to complete
+            if competitive_task:
+                analysis_text, competitive_analysis = await asyncio.gather(
+                    analysis_task,
+                    competitive_task,
+                    return_exceptions=True
+                )
+                
+                # Handle exceptions from competitive analysis
+                if isinstance(competitive_analysis, Exception):
+                    print(f"⚠ Competitive analysis failed: {competitive_analysis}")
+                    competitive_analysis = None
+            else:
+                analysis_text = await analysis_task
+                competitive_analysis = None
+            
+            # Handle exception from main analysis
+            if isinstance(analysis_text, Exception):
+                print(f"⚠ Main analysis failed: {analysis_text}")
+                analysis_text = f"Analysis temporarily unavailable. Error: {str(analysis_text)}"
             
             # Step 3: Construct the final report
             if stock_data:
@@ -52,12 +77,13 @@ class ResearchService:
                     data=ReportData(
                         overview=CompanyOverview(**report_data['data']['overview']),
                         financials=Financials(**report_data['data']['financials']),
-                        analysis=analysis_text
+                        analysis=analysis_text,
+                        competitive=competitive_analysis
                     )
                 )
             else:
                 # Fallback to mock data with AI analysis
-                report = ResearchService._create_mock_report_with_analysis(company_name, analysis_text)
+                report = ResearchService._create_mock_report_with_analysis(company_name, analysis_text, competitive_analysis)
             
             return report
             
@@ -98,9 +124,56 @@ class ResearchService:
         except Exception as e:
             print(f"Error in AI analysis: {e}")
             return f"AI analysis for {company_name} is temporarily unavailable due to technical issues."
+
+    @staticmethod
+    async def _generate_competitive_analysis(ticker: str) -> Optional[CompetitiveAnalysis]:
+        """Generate competitive analysis by finding competitors and fetching their data"""
+        try:
+            print(f"🏁 Generating competitive analysis for: {ticker}")
+            
+            # Step 1: Get competitor tickers
+            competitor_tickers = await CompetitorAnalysisService.get_competitor_tickers(ticker.upper())
+            if not competitor_tickers:
+                print(f"⚠ No competitors found for {ticker}")
+                return None
+            
+            print(f"✓ Found {len(competitor_tickers)} competitors: {competitor_tickers}")
+            
+            # Step 2: Fetch stock data for each competitor
+            competitor_data = []
+            for comp_ticker in competitor_tickers:
+                try:
+                    stock_data = fetch_stock_summary(comp_ticker)
+                    competitor_data.append(CompetitorData(
+                        ticker=comp_ticker,
+                        name=stock_data['data']['overview']['name'],
+                        sector=stock_data['data']['overview']['sector'],
+                        marketCap=stock_data['data']['overview']['marketCap'],
+                        price=stock_data['data']['overview']['price'],
+                        change=stock_data['data']['overview']['change'],
+                        revenue=stock_data['data']['financials']['revenue'],
+                        netIncome=stock_data['data']['financials']['netIncome'],
+                        eps=stock_data['data']['financials']['eps'],
+                        peRatio=stock_data['data']['financials']['peRatio']
+                    ))
+                    print(f"✓ Fetched data for competitor: {comp_ticker}")
+                except Exception as e:
+                    print(f"⚠ Could not fetch data for competitor {comp_ticker}: {e}")
+                    continue
+            
+            if competitor_data:
+                print(f"✓ Successfully fetched data for {len(competitor_data)} competitors")
+                return CompetitiveAnalysis(competitors=competitor_data)
+            else:
+                print(f"⚠ No competitor data could be fetched")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Error in competitive analysis: {e}")
+            return None
     
     @staticmethod
-    async def generate_research_report(prompt: str, ticker: str) -> ResearchReport:
+    async def mock_generate_research_report(prompt: str, ticker: str) -> ResearchReport:
         """
         MOCK AI: Generate a research report with real stock data and MOCK AI analysis. ONLY AI IS MOCKED
         
@@ -125,7 +198,7 @@ class ResearchService:
         # Simulate a small delay for perceived AI generation
         await asyncio.sleep(1)
 
-        # Step 2: Use a mock analysis text
+        # Step 2: Use a mock analysis text and generate competitive analysis
         company_name_for_analysis = prompt or (stock_data['data']['overview']['name'] if stock_data else ticker)
         mock_analysis_text = f"""
 ## Executive Summary (Mock Analysis)
@@ -139,6 +212,14 @@ This is a mock AI analysis for **{company_name_for_analysis}**. The financial da
 
 This report for **{ticker}** was generated using real-time financial data combined with a simulated AI analysis to facilitate testing.
         """
+        
+        # Step 2.5: Generate competitive analysis in parallel (but start after mock delay)
+        competitive_analysis = None
+        if ticker and ticker.strip():
+            try:
+                competitive_analysis = await ResearchService._generate_competitive_analysis(ticker)
+            except Exception as e:
+                print(f"⚠ Competitive analysis failed in mock mode: {e}")
 
         # Step 3: Construct the final report
         if stock_data:
@@ -150,20 +231,21 @@ This report for **{ticker}** was generated using real-time financial data combin
                 data=ReportData(
                     overview=CompanyOverview(**stock_data['data']['overview']),
                     financials=Financials(**stock_data['data']['financials']),
-                    analysis=mock_analysis_text
+                    analysis=mock_analysis_text,
+                    competitive=competitive_analysis
                 )
             )
         else:
             # Fallback to a fully mock report if stock data fails
             print("--- MOCK AI: Could not fetch real data, falling back to fully mock report ---")
-            report = ResearchService._create_mock_report_with_analysis(prompt, mock_analysis_text)
+            report = ResearchService._create_mock_report_with_analysis(prompt, mock_analysis_text, competitive_analysis)
             
         print("--- MOCK AI: Report generated successfully ---")
         
         return report
 
     @staticmethod
-    def _create_mock_report_with_analysis(company_name: str, analysis: str) -> ResearchReport:
+    def _create_mock_report_with_analysis(company_name: str, analysis: str, competitive_analysis: Optional[CompetitiveAnalysis] = None) -> ResearchReport:
         """Create a mock report when real stock data is unavailable"""
         now = datetime.now(timezone.utc)
         
@@ -239,6 +321,7 @@ This report for **{ticker}** was generated using real-time financial data combin
                     eps=data["eps"],
                     peRatio=data["peRatio"]
                 ),
-                analysis=analysis
+                analysis=analysis,
+                competitive=competitive_analysis
             )
         )

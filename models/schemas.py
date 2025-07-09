@@ -48,10 +48,26 @@ class Financials(BaseModel):
     eps: str
     peRatio: str
 
+class CompetitorData(BaseModel):
+    ticker: str
+    name: str
+    sector: str
+    marketCap: str
+    price: str
+    change: str
+    revenue: str
+    netIncome: str
+    eps: str
+    peRatio: str
+
+class CompetitiveAnalysis(BaseModel):
+    competitors: List[CompetitorData]
+
 class ReportData(BaseModel):
     overview: CompanyOverview
     financials: Financials
     analysis: str
+    competitive: Optional[CompetitiveAnalysis] = None
 
 class ResearchReport(BaseModel):
     id: str
