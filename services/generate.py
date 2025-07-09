@@ -1,5 +1,4 @@
 import os
-import dotenv
 import json
 import re
 import asyncio
@@ -14,10 +13,9 @@ from google.genai import types
 from . import prompt 
 
 # --- Setup ---
-dotenv.load_dotenv()  
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY not found in .env file. Please create one.")
+    raise ValueError("The GEMINI_API_KEY environment variable is not set. Please set it in your deployment environment (e.g., Railway).")
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
