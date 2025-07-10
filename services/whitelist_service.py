@@ -63,8 +63,13 @@ class WhitelistService:
     
     def is_email_whitelisted(self, email: str) -> bool:
         """Check if an email is in the whitelist"""
+        # Check if email is in the whitelist array
         whitelist = self._load_whitelist()
-        return email.lower() in [e.lower() for e in whitelist]
+        if email.lower() in [e.lower() for e in whitelist]:
+            return True
+        
+        # Also check if email is the admin email
+        return self.is_admin_email(email)
     
     def add_email_to_whitelist(self, email: str) -> bool:
         """Add an email to the whitelist"""
