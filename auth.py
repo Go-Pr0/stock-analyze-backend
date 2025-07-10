@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from database import get_db
 from models.user_models import User
 from models.schemas import TokenData
+from services.whitelist_service import whitelist_service
 
 load_dotenv()
 
@@ -76,11 +77,22 @@ def authenticate_user(db: Session, email: str, password: str):
 
 def create_user(db: Session, email: str, username: str, password: str):
     """Create a new user"""
+    # Check if email is whitelisted
+    if not whitelist_service.is_email_whitelisted(email):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email not authorized. Please contact administrator for access."
+        )
+    
     hashed_password = get_password_hash(password)
+    # Check if this email is the admin email
+    is_admin = whitelist_service.is_admin_email(email)
+    
     db_user = User(
         email=email,
         username=username,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
+        is_admin=is_admin
     )
     db.add(db_user)
     db.commit()
@@ -108,4 +120,13 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     """Get current active user"""
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+async def get_current_admin_user(current_user: User = Depends(get_current_active_user)):
+    """Get current admin user"""
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
     return current_user
